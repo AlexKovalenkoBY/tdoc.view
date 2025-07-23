@@ -38,26 +38,30 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
-                .loginPage("/login") // URL страницы логина
-                .loginProcessingUrl("/api/login") // URL для обработки формы
-                .defaultSuccessUrl("/", true)
+                .loginProcessingUrl("/api/login")
+                .successHandler((request, response, authentication) -> {
+                    response.setStatus(HttpStatus.OK.value());
+                })
+                .failureHandler((request, response, exception) -> {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                })
             );
-    
+        
         return http.build();
     }
+    
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
-        configuration.setAllowedMethods(List.of("*"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedMethods(List.of("*"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
-
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsername(username)
