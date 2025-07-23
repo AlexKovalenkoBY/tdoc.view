@@ -1,6 +1,7 @@
 package com.example.tecdoc.config;
 
 import com.example.tecdoc.JwtAuthenticationFilter;
+import com.example.tecdoc.JwtUtil;
 import com.example.tecdoc.model.User;
 import com.example.tecdoc.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,6 @@ import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,50 +28,27 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
-@EnableWebSecurity(debug = true) // ✅ Включает Security debug-фильтр
+@EnableWebSecurity(debug = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
-    // @Bean
-    // public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    //     http
-    //         .cors(withDefaults())
-    //         .csrf(csrf -> csrf.disable())
-    //         .authorizeHttpRequests(auth -> auth
-    //             .requestMatchers("/api/login").permitAll()
-    //             .anyRequest().authenticated())
-    //         .formLogin(form -> form
-    //             .loginProcessingUrl("/api/login")
-    //             .usernameParameter("username")
-    //             .passwordParameter("password")
-    //             .successHandler((request, response, authentication) -> {
-    //                 response.setStatus(HttpStatus.OK.value());
-    //                 response.getWriter().write("{\"status\":\"success\"}");
-    //             })
-    //             .failureHandler((request, response, exception) -> {
-    //                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
-    //                 response.getWriter().write("{\"status\":\"error\"}");
-    //             })
-    //         );
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, userDetailsService());
 
-    //     return http.build();
-    // }
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, userDetailsService());
+        http
+            .cors(withDefaults())
+            .csrf(csrf -> csrf.disable()) // ✅ отключаем CSRF
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/login", "/api/logout").permitAll()
+                .anyRequest().authenticated())
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-    http
-        .cors(withDefaults())
-        .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/login", "/api/logout").permitAll()
-            .anyRequest().authenticated())
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-
-    return http.build();
-}
+        return http.build();
+    }
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder) throws Exception {

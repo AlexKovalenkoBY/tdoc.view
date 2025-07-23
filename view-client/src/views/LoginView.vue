@@ -7,14 +7,14 @@
         placeholder="Username" 
         required
         autocomplete="username"
-      >
+      />
       <input 
         v-model="form.password" 
         type="password" 
         placeholder="Password" 
         required
         autocomplete="current-password"
-      >
+      />
       <button type="submit">Login</button>
       <p v-if="error" class="error">{{ error }}</p>
     </form>
@@ -28,8 +28,8 @@ import axios from 'axios'
 
 const router = useRouter()
 const form = reactive({
-  username: 'admin',
-  password: 'admin'
+  username: '',
+  password: ''
 })
 const error = ref('')
 
@@ -37,28 +37,36 @@ const handleLogin = async () => {
   try {
     const response = await axios.post(
       '/api/login',
-      new URLSearchParams({
-        username: form.username,
-        password: form.password
-      }),
+      new URLSearchParams(form),
       {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        withCredentials: true
+        }
       }
-    );
-    
-    if (response.status === 200) {
-      router.push('/');
-    }
+    )
+
+    const token = response.data.token
+    localStorage.setItem('token', token)
+
+    // 👉 После успешного входа — получаем данные пользователя
+    const userInfo = await axios.get('/api/me', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    console.log('User:', userInfo.data)
+    router.push('/')
   } catch (err) {
-    error.value = 'Invalid credentials';
-    console.error('Login error:', err);
+    error.value = 'Invalid credentials'
+    console.error('Login error:', err)
   }
 }
 </script>
 
 <style>
-.error { color: red; margin-top: 10px; }
+.error {
+  color: red;
+  margin-top: 10px;
+}
 </style>
