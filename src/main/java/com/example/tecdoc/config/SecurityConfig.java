@@ -28,28 +28,24 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
     private final UserRepository userRepository;
 
+   
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors(withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login", "/login").permitAll()
+                .requestMatchers("/api/**", "/login").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginProcessingUrl("/api/login")
-                .successHandler((request, response, authentication) -> {
-                    response.setStatus(HttpStatus.OK.value());
-                })
-                .failureHandler((request, response, exception) -> {
-                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                })
+                .successHandler((req, res, auth) -> res.setStatus(200))
+                .failureHandler((req, res, ex) -> res.setStatus(401))
             );
-        
+    
         return http.build();
     }
-    
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
