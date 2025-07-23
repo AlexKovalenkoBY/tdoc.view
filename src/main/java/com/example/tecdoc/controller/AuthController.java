@@ -15,12 +15,11 @@ import lombok.Data;
 public class AuthController {
     
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         // Ваша логика аутентификации
-        // Возвращаем JWT токен или другую информацию о сессии
-        return ResponseEntity.ok(Map.of("token", "generated-jwt-token"));
+        return ResponseEntity.ok().build();
     }
-    
+
     @Data
     public static class LoginRequest {
         private String username;
