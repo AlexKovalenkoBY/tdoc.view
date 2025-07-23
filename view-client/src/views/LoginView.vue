@@ -35,18 +35,19 @@ const error = ref('')
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post('/api/login', form, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
+    const response = await axios.post('/api/login', 
+      `username=${form.username}&password=${form.password}`, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+    });
     
     if (response.status === 200) {
-      router.push('/')
+      router.push('/');
     }
   } catch (err) {
-    error.value = 'Invalid credentials'
-    console.error('Login error:', err)
+    error.value = 'Invalid credentials';
+    console.error('Login error:', err);
   }
 }
 </script>

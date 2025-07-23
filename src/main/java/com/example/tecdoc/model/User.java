@@ -26,7 +26,8 @@ public class User implements UserDetails {
     
     private String fullName;
     private boolean active = true;
-    
+    private String roles = "USER"; // По умолчанию роль USER
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
@@ -50,5 +51,13 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return active;
+    }
+    // Геттер и сеттер
+    public String getRoles() {
+        return roles;
+    }
+
+    public void setRoles(String roles) {
+        this.roles = roles;
     }
 }
