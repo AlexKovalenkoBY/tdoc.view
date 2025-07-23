@@ -35,12 +35,19 @@ const error = ref('')
 
 const handleLogin = async () => {
   try {
-    const response = await axios.post('/api/login', 
-      `username=${form.username}&password=${form.password}`, {
+    const response = await axios.post(
+      '/api/login',
+      new URLSearchParams({
+        username: form.username,
+        password: form.password
+      }),
+      {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    });
+        },
+        withCredentials: true
+      }
+    );
     
     if (response.status === 200) {
       router.push('/');

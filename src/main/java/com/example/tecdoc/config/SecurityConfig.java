@@ -32,26 +32,35 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login").permitAll()
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginProcessingUrl("/api/login")
-                .successHandler((request, response, authentication) -> {
-                    response.setStatus(HttpStatus.OK.value());
-                    response.getWriter().write("{\"status\":\"success\"}");
-                })
-                .failureHandler((request, response, exception) -> {
-                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                    response.getWriter().write("{\"status\":\"error\"}");
-                })
-            );
-    
+                .cors(withDefaults())
+                .formLogin(form -> form
+                        .loginProcessingUrl("/api/login")
+                        .successHandler((request, response, authentication) -> {
+                            response.setStatus(HttpStatus.OK.value());
+                            response.getWriter().write("{\"status\":\"success\"}");
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.getWriter().write("{\"status\":\"error\"}");
+                        }))
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/login").permitAll()
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginProcessingUrl("/api/login")
+                        .successHandler((request, response, authentication) -> {
+                            response.setStatus(HttpStatus.OK.value());
+                            response.getWriter().write("{\"status\":\"success\"}");
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.getWriter().write("{\"status\":\"error\"}");
+                        }));
+
         return http.build();
     }
+
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsername(username)
@@ -62,11 +71,12 @@ public class SecurityConfig {
                         .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
@@ -83,14 +93,13 @@ public class SecurityConfig {
     @Bean
     public CommandLineRunner initUsers() {
         return args -> {
-            if (userRepository.count() == 0) { // Если БД пустая
+            if (userRepository.count() == 0) {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder().encode("admin"));
-                admin.setRoles("ADMIN"); // Добавьте это поле в вашу сущность User
+                admin.setRoles("ADMIN");
                 admin.setFullName("Administrator");
                 userRepository.save(admin);
-                
                 System.out.println("Создан пользователь admin с паролем admin");
             }
         };
