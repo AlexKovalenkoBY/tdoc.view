@@ -2,36 +2,55 @@
   <div class="login-page">
     <h2>Login</h2>
     <form @submit.prevent="handleLogin">
-      <input v-model="form.username" placeholder="Username" required>
-      <input v-model="form.password" type="password" placeholder="Password" required>
+      <input 
+        v-model="form.username" 
+        placeholder="Username" 
+        required
+        autocomplete="username"
+      >
+      <input 
+        v-model="form.password" 
+        type="password" 
+        placeholder="Password" 
+        required
+        autocomplete="current-password"
+      >
       <button type="submit">Login</button>
+      <p v-if="error" class="error">{{ error }}</p>
     </form>
   </div>
 </template>
 
-<script>
-import { reactive } from 'vue'
+<script setup>
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-export default {
-  setup() {
-    const router = useRouter()
-    const form = reactive({
-      username: '',
-      password: ''
-    })
+const router = useRouter()
+const form = reactive({
+  username: 'admin',
+  password: 'admin'
+})
+const error = ref('')
 
-    const handleLogin = async () => {
-      try {
-        await axios.post('/api/login', form)
-        router.push('/')
-      } catch (error) {
-        console.error('Login failed', error)
+const handleLogin = async () => {
+  try {
+    const response = await axios.post('/api/login', form, {
+      headers: {
+        'Content-Type': 'application/json'
       }
+    })
+    
+    if (response.status === 200) {
+      router.push('/')
     }
-
-    return { form, handleLogin }
+  } catch (err) {
+    error.value = 'Invalid credentials'
+    console.error('Login error:', err)
   }
 }
 </script>
+
+<style>
+.error { color: red; margin-top: 10px; }
+</style>
