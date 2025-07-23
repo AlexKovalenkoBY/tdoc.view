@@ -20,7 +20,11 @@ spring:
 server:
   port: 8080
 
+# logging:
+#   level:
+#     org.springframework.security: DEBUG
+#     com.example: DEBUG
 logging:
   level:
     org.springframework.security: DEBUG
-    com.example: DEBUG
+    org.springframework.security.web.FilterChainProxy: DEBUG
