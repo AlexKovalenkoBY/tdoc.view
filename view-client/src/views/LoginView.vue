@@ -48,14 +48,19 @@ const handleLogin = async () => {
     const token = response.data.token
     localStorage.setItem('token', token)
 
-    // 👉 После успешного входа — получаем данные пользователя
-    const userInfo = await axios.get('/api/me', {
+    // 👉 Получаем информацию о пользователе
+    const userInfoResponse = await axios.get('/api/me', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
 
-    console.log('User:', userInfo.data)
+    const userInfo = userInfoResponse.data
+
+    // 🧠 Сохраняем в localStorage для главной страницы
+    localStorage.setItem('userInfo', JSON.stringify(userInfo))
+
+    // 🚀 Переход на корень
     router.push('/')
   } catch (err) {
     error.value = 'Invalid credentials'
