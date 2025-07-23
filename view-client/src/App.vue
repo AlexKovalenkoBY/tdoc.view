@@ -1,7 +1,5 @@
-<script setup>
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
-  <RouterView />
+  <router-view v-slot="{ Component }">
+    <component :is="Component" />
+  </router-view>
 </template>
