@@ -26,50 +26,35 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
     private final UserRepository userRepository;
     
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .csrf(csrf -> csrf.ignoringRequestMatchers("/api/login", "/api/**"))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/login").permitAll()
-            .requestMatchers("/api/**").authenticated()
-            .anyRequest().permitAll()
-        )
-        .formLogin(form -> form
-            .loginPage("/login") // Это для SSR, можно оставить или удалить
-            .loginProcessingUrl("/api/login")
-            .successHandler((request, response, authentication) -> {
-                response.setStatus(HttpStatus.OK.value());
-                response.getWriter().write("Login successful");
-            })
-            .failureHandler((request, response, exception) -> {
-                response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.getWriter().write("Login failed");
-            })
-        )
-        .logout(logout -> logout
-            .logoutUrl("/api/logout")
-            .logoutSuccessHandler((request, response, authentication) -> {
-                response.setStatus(HttpStatus.OK.value());
-            })
-        );
-    
-    return http.build();
-}
-@Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:3000")); // URL Vite
-    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-    config.setAllowedHeaders(List.of("*"));
-    config.setAllowCredentials(true);
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Включаем CORS
+            .csrf(csrf -> csrf.disable()) // Отключаем CSRF для API
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/login").permitAll() // Разрешаем доступ к логину без аутентификации
+                .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
+            )
+            .formLogin(form -> form
+                .loginProcessingUrl("/api/login") // URL для обработки логина
+                .defaultSuccessUrl("/", true)
+            );
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-}
+        return http.build();
+    }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173")); // Укажите ваш порт фронтенда
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config); // Применяем настройки ко всем URL
+        return source;
+    }
 
 
     @Bean
