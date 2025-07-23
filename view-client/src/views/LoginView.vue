@@ -13,10 +13,15 @@ const handleSubmit = async () => {
     const response = await axios.post('/api/login', {
       username: username.value,
       password: password.value
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
-    router.push('/'); // Перенаправление после успешного входа
-  } catch (err) {
-    error.value = 'Ошибка входа';
+    console.log('Login success', response.data);
+    router.push('/');
+  } catch (error) {
+    console.error('Login failed', error);
   }
 };
 </script>
