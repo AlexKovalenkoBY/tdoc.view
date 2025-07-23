@@ -43,8 +43,10 @@ public class SecurityConfig {
             .cors(withDefaults())
             .csrf(csrf -> csrf.disable()) // ✅ отключаем CSRF
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login", "/api/logout").permitAll()
-                .anyRequest().authenticated())
+    .requestMatchers("/api/login", "/api/logout").permitAll()
+    .requestMatchers("/api/users/**").hasRole("ADMIN")
+    .anyRequest().authenticated())
+
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -65,11 +67,11 @@ public class SecurityConfig {
             .map(user -> org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .roles("USER") // можно адаптировать по user.getRoles()
+                .roles(user.getRoles()) // ✅ берём реальные роли из user
                 .build())
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
-
+    
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
